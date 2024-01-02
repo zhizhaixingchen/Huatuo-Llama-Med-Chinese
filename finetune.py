@@ -123,7 +123,7 @@ def train(
 
     model = AutoModelForCausalLM.from_pretrained(
         base_model,
-        load_in_8bit=False,
+        load_in_8bit=True,
         torch_dtype=torch.float16,
         device_map=device_map,
     )
