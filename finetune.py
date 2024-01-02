@@ -28,16 +28,26 @@ from utils.prompter import Prompter
 from transformers import Seq2SeqTrainer, TrainerCallback, TrainingArguments, TrainerState, TrainerControl
 from transformers.trainer_utils import PREFIX_CHECKPOINT_DIR
 
+"""
+exp_tag="e1"
+python finetune.py \
+    --base_model 'Llama-2-7b-chinese-chat' \
+    --data_path './data/llama_data.json' \
+    --output_dir './lora-llama-med-'$exp_tag \
+    --prompt_template_name 'med_template' \
+    --micro_batch_size 128 \
+    --batch_size 128 \
+    --wandb_run_name $exp_tag"""
 
 def train(
     # model/data params
-    base_model: str = "",  # the only required argument
-    data_path: str = "yahma/alpaca-cleaned",
-    output_dir: str = "./lora-alpaca",
+    base_model: str = "Llama-2-7b-chinese-chat",  # the only required argument
+    data_path: str = "./data/llama_data.json",
+    output_dir: str = "./lora-llama-med-e1",
     # training hyperparams
-    batch_size: int = 128,
-    micro_batch_size: int = 8,
-    num_epochs: int = 10,
+    batch_size: int = 2,
+    micro_batch_size: int = 1,
+    num_epochs: int = 5,
     learning_rate: float = 3e-4,
     cutoff_len: int = 256,
     val_set_size: int = 500,
@@ -54,11 +64,11 @@ def train(
     group_by_length: bool = False,  # faster, but produces an odd training loss curve
     # wandb params
     wandb_project: str = "llama_med",
-    wandb_run_name: str = "",
+    wandb_run_name: str = "e1",
     wandb_watch: str = "",  # options: false | gradients | all
     wandb_log_model: str = "",  # options: false | true
     resume_from_checkpoint: str = None,  # either training checkpoint or final adapter
-    prompt_template_name: str = "alpaca",  # The prompt template to use, will default to alpaca.
+    prompt_template_name: str = "med_template",  # The prompt template to use, will default to alpaca.
 ):
     if int(os.environ.get("LOCAL_RANK", 0)) == 0:
         print(
@@ -113,7 +123,7 @@ def train(
 
     model = AutoModelForCausalLM.from_pretrained(
         base_model,
-        load_in_8bit=True,
+        load_in_8bit=False,
         torch_dtype=torch.float16,
         device_map=device_map,
     )
